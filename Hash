@@ -1,0 +1,78 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <time.h>
+#define CAPACITY 10000  
+typedef struct {
+    int *data;
+    int size;
+    int capacity;
+    int *index_map;
+} RandomizedSet;
+RandomizedSet *randomizedSetCreate() {
+    RandomizedSet *set = (RandomizedSet *)malloc(sizeof(RandomizedSet));
+    set->data = (int *)malloc(CAPACITY * sizeof(int));
+    set->size = 0;
+    set->capacity = CAPACITY;
+    set->index_map = (int *)malloc(CAPACITY * sizeof(int));
+    srand(time(NULL));
+    return set;
+}
+bool randomizedSetInsert(RandomizedSet *set, int x) {
+    if (set->size >= set->capacity) {
+        set->capacity *= 2;
+        set->data = (int *)realloc(set->data, set->capacity * sizeof(int));
+        set->index_map = (int *)realloc(set->index_map, set->capacity * sizeof(int));
+    }
+    if (set->index_map[x] == 0) {
+        set->size++;
+        set->data[set->size - 1] = x;
+        set->index_map[x] = set->size;
+        return true;
+    }
+
+    return false;
+}
+bool randomizedSetRemove(RandomizedSet *set, int x) {
+    if (set->index_map[x] > 0) {
+        int index_to_remove = set->index_map[x] - 1;
+        int last_element = set->data[set->size - 1];
+        set->data[index_to_remove] = last_element;
+        set->index_map[last_element] = index_to_remove + 1;
+        set->size--;
+        set->index_map[x] = 0;
+        return true;
+    }
+    return false;
+}
+int randomizedSetGetRandom(RandomizedSet *set) {
+    if (set->size > 0) {
+        int random_index = rand() % set->size;
+        return set->data[random_index];
+    }
+    return -1;  
+}
+bool randomizedSetSearch(RandomizedSet *set, int x) {
+    return (set->index_map[x] > 0);
+}
+void randomizedSetFree(RandomizedSet *set) {
+    free(set->data);
+    free(set->index_map);
+    free(set);
+}
+int main() {
+    RandomizedSet *randomized_set = randomizedSetCreate();
+    randomizedSetInsert(randomized_set, 1);
+    randomizedSetInsert(randomized_set, 2);
+    randomizedSetInsert(randomized_set, 3);
+    printf("Random element: %d\n", randomizedSetGetRandom(randomized_set));
+    randomizedSetRemove(randomized_set, 2);
+    if (randomizedSetSearch(randomized_set, 2)) {
+        printf("Element 2 is present.\n");
+    } else {
+        printf("Element 2 is not present.\n");
+    }
+    randomizedSetFree(randomized_set);
+    return 0;
+}
